@@ -25,10 +25,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 $listings = $pdo->query("
-    SELECT l.*, p.name AS pokemon_name, p.type_primary, p.image_url, u.username AS seller_name
+    SELECT l.*, c.card_name, c.typing, c.image_url, u.username AS seller_name
     FROM listings l
-    JOIN pokemon p ON l.pokemon_id = p.pokemon_id
-    JOIN users   u ON l.seller_id  = u.user_id
+    JOIN cards c ON l.card_id   = c.card_id
+    JOIN users u ON l.seller_id = u.user_id
     ORDER BY l.created_at DESC
 ")->fetchAll();
 ?>
@@ -44,7 +44,7 @@ $listings = $pdo->query("
                 <div class="table-responsive">
                     <table class="table table-hover align-middle mb-0">
                         <thead class="table-dark">
-                            <tr><th>Pokémon</th><th>Title</th><th>Seller</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
+                            <tr><th>Card</th><th>Title</th><th>Seller</th><th>Price</th><th>Stock</th><th>Status</th><th>Actions</th></tr>
                         </thead>
                         <tbody>
                             <?php foreach ($listings as $l): ?>
@@ -53,7 +53,7 @@ $listings = $pdo->query("
                                     <div class="d-flex align-items-center gap-2">
                                         <img src="<?= e($l['image_url']) ?>" alt=""
                                              style="width:40px;height:40px;object-fit:contain;background:#eef0ff;border-radius:6px;">
-                                        <span class="fw-bold small"><?= e($l['pokemon_name']) ?></span>
+                                        <span class="fw-bold small"><?= e($l['card_name']) ?></span>
                                     </div>
                                 </td>
                                 <td class="small"><?= e(mb_strimwidth($l['title'], 0, 40, '...')) ?></td>

@@ -23,10 +23,10 @@ $recentOrders = $pdo->query("
 
 // Recent listings
 $recentListings = $pdo->query("
-    SELECT l.listing_id, l.title, l.price, l.status, u.username AS seller, p.name AS pokemon_name
+    SELECT l.listing_id, l.title, l.price, l.status, u.username AS seller, c.card_name
     FROM listings l
-    JOIN users   u ON l.seller_id  = u.user_id
-    JOIN pokemon p ON l.pokemon_id = p.pokemon_id
+    JOIN users u ON l.seller_id = u.user_id
+    JOIN cards c ON l.card_id   = c.card_id
     ORDER BY l.created_at DESC LIMIT 5
 ")->fetchAll();
 ?>
@@ -96,12 +96,12 @@ $recentListings = $pdo->query("
                         <div class="table-responsive">
                             <table class="table table-hover mb-0 small">
                                 <thead class="table-light">
-                                    <tr><th>Pokémon</th><th>Seller</th><th>Price</th><th>Status</th></tr>
+                                    <tr><th>Card</th><th>Seller</th><th>Price</th><th>Status</th></tr>
                                 </thead>
                                 <tbody>
                                     <?php foreach ($recentListings as $l): ?>
                                     <tr>
-                                        <td><?= e($l['pokemon_name']) ?></td>
+                                        <td><?= e($l['card_name']) ?></td>
                                         <td><?= e($l['seller']) ?></td>
                                         <td class="fw-bold text-primary">$<?= number_format($l['price'],2) ?></td>
                                         <td><span class="badge bg-<?= $l['status']==='active'?'success':'secondary' ?>"><?= e($l['status']) ?></span></td>

@@ -22,10 +22,10 @@ $pageTitle = 'Order #' . str_pad($orderId, 4, '0', STR_PAD_LEFT);
 
 // Fetch order items
 $stmt2 = $pdo->prepare("
-    SELECT oi.*, l.title, p.name AS pokemon_name, p.image_url, p.type_primary
+    SELECT oi.*, l.title, c.card_name, c.image_url, c.typing
     FROM order_items oi
     JOIN listings l ON oi.listing_id = l.listing_id
-    JOIN pokemon  p ON l.pokemon_id  = p.pokemon_id
+    JOIN cards    c ON l.card_id     = c.card_id
     WHERE oi.order_id = ?
 ");
 $stmt2->execute([$orderId]);
@@ -80,12 +80,12 @@ $currentIdx  = $statusOrder[$order['status']] ?? 0;
         <h2 class="h6 fw-bold mb-3">Items Ordered</h2>
         <?php foreach ($items as $item): ?>
         <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
-            <img src="<?= e($item['image_url']) ?>" alt="<?= e($item['pokemon_name']) ?>"
+            <img src="<?= e($item['image_url']) ?>" alt="<?= e($item['card_name']) ?>"
                  style="width:64px;height:64px;object-fit:contain;background:#eef0ff;border-radius:12px;padding:6px;">
             <div class="flex-grow-1">
                 <p class="mb-0 fw-bold"><?= e($item['title']) ?></p>
-                <span class="type-badge" style="background:<?= typeBadgeColor($item['type_primary']) ?>; font-size:0.7rem;">
-                    <?= e($item['type_primary']) ?>
+                <span class="type-badge" style="background:<?= typeBadgeColor($item['typing']) ?>; font-size:0.7rem;">
+                    <?= e($item['typing']) ?>
                 </span>
                 <p class="mb-0 text-muted small mt-1">Qty: <?= $item['quantity'] ?></p>
             </div>

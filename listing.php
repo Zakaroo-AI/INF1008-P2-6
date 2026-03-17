@@ -7,10 +7,10 @@ $pdo = getPDO();
 
 $id      = (int)($_GET['id'] ?? 0);
 $stmt    = $pdo->prepare("
-    SELECT l.*, p.*, p.name AS pokemon_name, u.username AS seller_name, u.user_id AS seller_user_id
+    SELECT l.*, c.*, c.card_name, u.username AS seller_name, u.user_id AS seller_user_id
     FROM listings l
-    JOIN pokemon p ON l.pokemon_id = p.pokemon_id
-    JOIN users   u ON l.seller_id  = u.user_id
+    JOIN cards c ON l.card_id = c.card_id
+    JOIN users  u ON l.seller_id = u.user_id
     WHERE l.listing_id = ?
 ");
 $stmt->execute([$id]);
@@ -39,19 +39,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['add_to_cart'])) {
         ON DUPLICATE KEY UPDATE quantity = LEAST(quantity + 1, ?)
     ");
     $stmt2->execute([$_SESSION['user_id'], $id, $listing['stock']]);
-    $_SESSION['flash'] = ['type' => 'success', 'message' => $listing['pokemon_name'] . ' added to your cart!'];
+    $_SESSION['flash'] = ['type' => 'success', 'message' => $listing['card_name'] . ' added to your cart!'];
     header('Location: /cart.php'); exit;
 }
 
-// Related listings (same type)
+// Related listings (same typing)
 $related = $pdo->prepare("
-    SELECT l.listing_id, l.title, l.price, p.name AS pokemon_name, p.image_url, p.type_primary
-    FROM listings l JOIN pokemon p ON l.pokemon_id = p.pokemon_id
-    WHERE (p.type_primary = ? OR p.type_secondary = ?)
-      AND l.listing_id <> ? AND l.status = 'active'
+    SELECT l.listing_id, l.title, l.price, c.card_name, c.image_url, c.typing
+    FROM listings l JOIN cards c ON l.card_id = c.card_id
+    WHERE c.typing = ? AND l.listing_id <> ? AND l.status = 'active'
     LIMIT 4
 ");
-$related->execute([$listing['type_primary'], $listing['type_primary'], $id]);
+$related->execute([$listing['typing'], $id]);
 $relatedListings = $related->fetchAll();
 ?>
 
@@ -69,7 +68,7 @@ $relatedListings = $related->fetchAll();
         <div class="col-md-5 text-center">
             <div class="bg-light rounded-4 p-4 mb-3" style="background:linear-gradient(135deg,#e8ecff,#f0f4ff)!important;">
                 <img src="<?= e($listing['image_url']) ?>"
-                     alt="<?= e($listing['pokemon_name']) ?>"
+                     alt="<?= e($listing['card_name']) ?>"
                      class="img-fluid" style="max-height:320px;">
             </div>
             <!-- Wishlist -->
@@ -84,18 +83,16 @@ $relatedListings = $related->fetchAll();
 
         <!-- Right: Details -->
         <div class="col-md-7">
-            <!-- Types -->
+            <!-- Type & Rarity -->
             <div class="mb-2">
-                <span class="type-badge" style="background:<?= typeBadgeColor($listing['type_primary']) ?>">
-                    <?= e($listing['type_primary']) ?>
+                <span class="type-badge" style="background:<?= typeBadgeColor($listing['typing']) ?>">
+                    <?= e($listing['typing']) ?>
                 </span>
-                <?php if ($listing['type_secondary']): ?>
-                <span class="type-badge ms-1" style="background:<?= typeBadgeColor($listing['type_secondary']) ?>">
-                    <?= e($listing['type_secondary']) ?>
-                </span>
-                <?php endif; ?>
-                <span class="badge ms-2 rarity-<?= strtolower(e($listing['rarity'])) ?>">
+                <span class="badge ms-2 rarity-<?= strtolower(str_replace(' ','-', e($listing['rarity']))) ?>">
                     <?= e($listing['rarity']) ?>
+                </span>
+                <span class="badge ms-2 condition-<?= strtolower(str_replace(' ','-', e($listing['condition_grade']))) ?>">
+                    <?= e($listing['condition_grade']) ?>
                 </span>
             </div>
 
@@ -123,29 +120,17 @@ $relatedListings = $related->fetchAll();
             <?php endif; ?>
 
             <hr>
-            <h2 class="h6 fw-bold mb-2">Description</h2>
-            <p><?= nl2br(e($listing['description'] ?? $listing['p.description'] ?? 'No description provided.')) ?></p>
+            <!-- Card Details -->
+            <h2 class="h6 fw-bold mb-3">Card Details</h2>
+            <table class="table table-sm table-borderless small">
+                <tr><th class="text-muted" style="width:40%">Set</th><td><?= e($listing['set_name']) ?></td></tr>
+                <tr><th class="text-muted">Card Number</th><td><?= e($listing['card_number']) ?></td></tr>
+                <tr><th class="text-muted">Condition</th><td><?= e($listing['condition_grade']) ?></td></tr>
+                <tr><th class="text-muted">Language</th><td><?= e($listing['language']) ?></td></tr>
+            </table>
 
-            <!-- Pokémon Stats -->
-            <h2 class="h6 fw-bold mt-4 mb-3">Base Stats</h2>
-            <?php
-            $stats = [
-                'HP'      => ['value' => $listing['hp'],      'color' => '#FF5959'],
-                'Attack'  => ['value' => $listing['attack'],  'color' => '#F5AC78'],
-                'Defense' => ['value' => $listing['defense'], 'color' => '#FAE078'],
-                'Speed'   => ['value' => $listing['speed'],   'color' => '#FA92B2'],
-            ];
-            foreach ($stats as $name => $stat): ?>
-            <div class="stat-bar-wrap d-flex align-items-center gap-2">
-                <span class="stat-label"><?= $name ?></span>
-                <span class="fw-bold" style="min-width:30px;"><?= $stat['value'] ?></span>
-                <div class="flex-grow-1 bg-light rounded" style="height:10px;">
-                    <div class="stat-bar rounded"
-                         style="background:<?= $stat['color'] ?>; height:10px;"
-                         data-value="<?= $stat['value'] ?>" data-max="200"></div>
-                </div>
-            </div>
-            <?php endforeach; ?>
+            <h2 class="h6 fw-bold mb-2">Description</h2>
+            <p><?= nl2br(e($listing['description'] ?? 'No description provided.')) ?></p>
         </div>
     </div>
 
@@ -158,10 +143,10 @@ $relatedListings = $related->fetchAll();
             <div class="col">
                 <a href="/listing.php?id=<?= $rel['listing_id'] ?>" class="text-decoration-none">
                     <div class="card listing-card h-100 text-center p-2">
-                        <img src="<?= e($rel['image_url']) ?>" alt="<?= e($rel['pokemon_name']) ?>"
+                        <img src="<?= e($rel['image_url']) ?>" alt="<?= e($rel['card_name']) ?>"
                              class="card-img-top" style="height:100px; object-fit:contain; padding:8px;">
                         <div class="card-body p-2">
-                            <p class="small fw-bold mb-0 text-dark"><?= e($rel['pokemon_name']) ?></p>
+                            <p class="small fw-bold mb-0 text-dark"><?= e($rel['card_name']) ?></p>
                             <p class="small text-primary fw-bold mb-0">$<?= number_format($rel['price'], 2) ?></p>
                         </div>
                     </div>

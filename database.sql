@@ -21,20 +21,17 @@ CREATE TABLE users (
 );
 
 -- -----------------------------------------------
--- POKEMON CATALOGUE
+-- CARDS CATALOGUE
 -- -----------------------------------------------
-CREATE TABLE pokemon (
-    pokemon_id      INT AUTO_INCREMENT PRIMARY KEY,
-    name            VARCHAR(100) NOT NULL,
-    type_primary    VARCHAR(30)  NOT NULL,
-    type_secondary  VARCHAR(30)  DEFAULT NULL,
-    hp              INT NOT NULL DEFAULT 50,
-    attack          INT NOT NULL DEFAULT 50,
-    defense         INT NOT NULL DEFAULT 50,
-    speed           INT NOT NULL DEFAULT 50,
-    rarity          ENUM('Common','Rare','Epic','Legendary') NOT NULL DEFAULT 'Common',
-    image_url       VARCHAR(255) NOT NULL DEFAULT 'assets/images/default.png',
-    description     TEXT DEFAULT NULL
+CREATE TABLE cards (
+    card_id     INT AUTO_INCREMENT PRIMARY KEY,
+    card_name   VARCHAR(100) NOT NULL,
+    set_name    VARCHAR(100) NOT NULL,
+    card_number VARCHAR(20)  NOT NULL,
+    typing      VARCHAR(30)  NOT NULL,
+    rarity      ENUM('Common','Uncommon','Rare','Holo Rare','Ultra Rare','Secret Rare') NOT NULL DEFAULT 'Common',
+    image_url   VARCHAR(255) NOT NULL DEFAULT 'assets/images/default.png',
+    description TEXT DEFAULT NULL
 );
 
 -- -----------------------------------------------
@@ -43,15 +40,17 @@ CREATE TABLE pokemon (
 CREATE TABLE listings (
     listing_id  INT AUTO_INCREMENT PRIMARY KEY,
     seller_id   INT NOT NULL,
-    pokemon_id  INT NOT NULL,
+    card_id     INT NOT NULL,
     title       VARCHAR(150) NOT NULL,
     description TEXT DEFAULT NULL,
     price       DECIMAL(10,2) NOT NULL,
     stock       INT NOT NULL DEFAULT 1,
+    condition_grade ENUM('PSA 1','PSA 2','PSA 3','PSA 4','PSA 5','PSA 6','PSA 7','PSA 8','PSA 9','PSA 10') NOT NULL DEFAULT 'PSA 7',
+    language    VARCHAR(30)  NOT NULL DEFAULT 'English',
     status      ENUM('active','sold','removed') DEFAULT 'active',
     created_at  TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    FOREIGN KEY (seller_id)  REFERENCES users(user_id)   ON DELETE CASCADE,
-    FOREIGN KEY (pokemon_id) REFERENCES pokemon(pokemon_id) ON DELETE CASCADE
+    FOREIGN KEY (seller_id) REFERENCES users(user_id)   ON DELETE CASCADE,
+    FOREIGN KEY (card_id)   REFERENCES cards(card_id)   ON DELETE CASCADE
 );
 
 -- -----------------------------------------------
@@ -120,32 +119,32 @@ INSERT INTO users (username, email, password_hash, role) VALUES
 ('MistyWater',  'misty@pokemart.com','$2y$10$TKh8H1.PfbuNauTTalJMFO2bGa9OaBIFerZ2RFJFY/HHkOCCQ0Bla', 'trainer'),
 ('BrockRock',   'brock@pokemart.com','$2y$10$TKh8H1.PfbuNauTTalJMFO2bGa9OaBIFerZ2RFJFY/HHkOCCQ0Bla', 'trainer');
 
--- Pokémon catalogue
-INSERT INTO pokemon (name, type_primary, type_secondary, hp, attack, defense, speed, rarity, image_url, description) VALUES
-('Pikachu',    'Electric', NULL,      35, 55, 40, 90, 'Rare',      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/25.png',   'The iconic Electric Mouse Pokémon. Its cheeks store electricity.'),
-('Charizard',  'Fire',     'Flying',  78, 84, 78, 100,'Epic',      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/6.png',    'A fearsome Fire/Flying type that soars the skies.'),
-('Blastoise',  'Water',    NULL,      79, 83, 100, 78,'Epic',      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/9.png',    'A powerful Water-type with cannons on its shell.'),
-('Mewtwo',     'Psychic',  NULL,      106,110,90, 130,'Legendary', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/150.png',  'A genetically engineered Legendary Pokémon of immense power.'),
-('Gengar',     'Ghost',    'Poison',  60, 65, 60, 110,'Rare',      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/94.png',   'A Shadow Pokémon that lurks in dark corners.'),
-('Lucario',    'Fighting', 'Steel',   70, 110,70, 90, 'Epic',      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/448.png',  'Masters Aura to sense and control energy.'),
-('Bulbasaur',  'Grass',    'Poison',  45, 49, 49, 45, 'Common',    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/1.png',    'A dual Grass/Poison starter with a seed on its back.'),
-('Squirtle',   'Water',    NULL,      44, 48, 65, 43, 'Common',    'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/7.png',    'A tiny Water-type that hides in its shell.'),
-('Eevee',      'Normal',   NULL,      55, 55, 50, 55, 'Rare',      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/133.png',  'An Evolution Pokémon with unstable genetic makeup.'),
-('Snorlax',    'Normal',   NULL,      160,110,65, 30, 'Epic',      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/143.png',  'A massive Pokémon that sleeps most of the day.'),
-('Dragonite',  'Dragon',   'Flying',  91, 134,95, 80, 'Legendary', 'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/149.png',  'A friendly Dragon type said to bring good fortune.'),
-('Umbreon',    'Dark',     NULL,      95, 65, 110,65, 'Rare',      'https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/other/official-artwork/197.png',  'A Moonlight Pokémon that evolved under moonlight.');
+-- Cards catalogue
+INSERT INTO cards (card_name, set_name, card_number, typing, rarity, image_url, description) VALUES
+('Charizard',  'Base Set',          '4/102',  'Fire',      'Holo Rare',   'https://images.pokemontcg.io/base1/4_hires.png',   'One of the most iconic cards ever printed. A must-have for any serious collector.'),
+('Blastoise',  'Base Set',          '2/102',  'Water',     'Holo Rare',   'https://images.pokemontcg.io/base1/2_hires.png',   'The Water-type powerhouse from the original Base Set.'),
+('Venusaur',   'Base Set',          '15/102', 'Grass',     'Holo Rare',   'https://images.pokemontcg.io/base1/15_hires.png',  'Rare Grass-type card from the original Base Set.'),
+('Pikachu',    'Base Set',          '58/102', 'Lightning', 'Common',      'https://images.pokemontcg.io/base1/58_hires.png',  'The classic Pikachu card everyone started with.'),
+('Mewtwo',     'Base Set',          '10/102', 'Psychic',   'Holo Rare',   'https://images.pokemontcg.io/base1/10_hires.png',  'Legendary Psychic-type with incredible power.'),
+('Gengar',     'Base Set',          '5/102',  'Psychic',   'Holo Rare',   'https://images.pokemontcg.io/base1/5_hires.png',   'Spooky Ghost-type card from the original Base Set.'),
+('Charizard',  'Scarlet & Violet',  '006/198','Fire',      'Ultra Rare',  'https://images.pokemontcg.io/sv1/6_hires.png',    'The modern Scarlet & Violet reprint of the beloved Charizard.'),
+('Pikachu',    'Celebrations',      '005/025','Lightning', 'Uncommon',    'https://images.pokemontcg.io/cel25/5_hires.png',  'Special 25th Anniversary Celebrations Pikachu.'),
+('Umbreon',    'Aquapolis',         'H29/H32','Darkness',  'Holo Rare',   'https://images.pokemontcg.io/ecard2/H29_hires.png','A highly sought-after Darkness-type from the e-Card era.'),
+('Lucario',    'Diamond & Pearl',   '6/130',  'Fighting',  'Holo Rare',   'https://images.pokemontcg.io/dp1/6_hires.png',    'The Aura Pokémon in holographic glory.'),
+('Dragonite',  'Fossil',            '4/62',   'Colorless', 'Holo Rare',   'https://images.pokemontcg.io/fossil/4_hires.png', 'A rare Dragonite card from the Fossil expansion.'),
+('Eevee',      'Jungle',            '51/64',  'Colorless', 'Common',      'https://images.pokemontcg.io/jungle/51_hires.png','The classic Eevee card from the Jungle set.');
 
 -- Sample listings
-INSERT INTO listings (seller_id, pokemon_id, title, description, price, stock) VALUES
-(2, 1,  'Shiny Pikachu — Level 50',        'My beloved Pikachu, trained to perfection. Fast shipping!',               250.00, 1),
-(2, 2,  'Charizard — Competitive Ready',   'Fully EV trained Charizard. Knows Flamethrower, Fly, Dragon Claw.',       999.00, 1),
-(3, 3,  'Blastoise Tank Build',            'Defensive Blastoise with max Defense EVs. Great for ranked battles.',     750.00, 2),
-(3, 5,  'Haunted Gengar',                  'Spooky Gengar perfect for Ghost-type lovers. Knows Shadow Ball.',          400.00, 3),
-(4, 7,  'Starter Bulbasaur',               'Perfect for beginners. Gentle nature, easy to train.',                      80.00, 5),
-(4, 8,  'Cute Squirtle',                   'Adorable Squirtle with Modest nature. Great for Water-type teams.',          75.00, 4),
-(2, 9,  'Rare Eevee — Multiple Evolutions','Eevee ready to evolve into your favourite Eeveelution!',                   300.00, 2),
-(3, 6,  'Lucario — Aura Master',           'Powerful Lucario with Close Combat and Aura Sphere. Tournament-ready.',    850.00, 1),
-(4, 10, 'Snorlax — Heavy Hitter',          'A mighty Snorlax. Perfect for defensive teams. Very relaxed nature.',      600.00, 1),
-(2, 11, 'Dragonite — Legendary Quality',   'Rare Dragonite with Multiscale ability. One of a kind find.',             1200.00, 1),
-(3, 12, 'Umbreon — Moonlit Beauty',        'Graceful Umbreon with perfect IVs in HP and Defense.',                    500.00, 2),
-(4, 4,  'Mewtwo — Ultimate Power',         'The rarest of listings. Psychic powerhouse. Handle with care.',           5000.00, 1);
+INSERT INTO listings (seller_id, card_id, title, description, price, stock, condition_grade, language) VALUES
+(2, 1,  'Base Set Charizard — PSA 9',            'Near mint condition, no scratches on holo. One of the best copies around.',   2500.00, 1, 'PSA 9',  'English'),
+(2, 2,  'Base Set Blastoise — Holo',             'Classic Blastoise in great condition. A staple for any Base Set collection.', 750.00,  1, 'PSA 8',  'English'),
+(3, 3,  'Base Set Venusaur — Holo',             'Lightly played Venusaur, minor edge wear only.',                               400.00,  1, 'PSA 7',  'English'),
+(3, 5,  'Mewtwo Base Set — Holo',               'Excellent condition Mewtwo with strong holo pattern.',                         600.00,  2, 'PSA 8',  'English'),
+(4, 4,  'Classic Pikachu Base Set',             'The original yellow border Pikachu. Nostalgic and collectible.',                45.00,  3, 'PSA 6',  'English'),
+(4, 7,  'Charizard Scarlet & Violet',           'Modern Charizard from the new SV set. Gem mint pulled straight from pack.',    180.00,  2, 'PSA 10', 'English'),
+(2, 8,  'Celebrations Pikachu 25th Anniversary','Special anniversary card in perfect condition.',                                90.00,  2, 'PSA 10', 'English'),
+(3, 9,  'Umbreon Aquapolis Holo — Japanese',    'Stunning Japanese Umbreon from the e-Card era. Very rare find.',               850.00,  1, 'PSA 9',  'Japanese'),
+(4, 10, 'Lucario Diamond & Pearl Holo',         'Beautiful Lucario holo in near mint condition.',                               200.00,  1, 'PSA 8',  'English'),
+(2, 11, 'Dragonite Fossil Holo',                'Vintage Dragonite from the Fossil expansion. Played but complete.',            300.00,  1, 'PSA 5',  'English'),
+(3, 12, 'Jungle Eevee — Classic Common',        'The original Jungle Eevee. Great for completing the set.',                     25.00,  5, 'PSA 6',  'English'),
+(4, 6,  'Gengar Base Set Holo',                 'Spooky Gengar in great condition. Strong holo with minor whitening.',          550.00,  1, 'PSA 7',  'English');

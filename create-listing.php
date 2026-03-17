@@ -9,34 +9,39 @@ requireLogin();
 $pdo    = getPDO();
 $errors = [];
 
-// Fetch all pokemon for dropdown
-$allPokemon = $pdo->query("SELECT pokemon_id, name, type_primary, rarity FROM pokemon ORDER BY name")->fetchAll();
+// Fetch all cards for dropdown
+$allCards = $pdo->query("SELECT card_id, card_name, set_name, typing, rarity FROM cards ORDER BY card_name")->fetchAll();
+$conditions = ['PSA 1','PSA 2','PSA 3','PSA 4','PSA 5','PSA 6','PSA 7','PSA 8','PSA 9','PSA 10'];
+$languages  = ['English','Japanese','Korean','Chinese','German','French','Spanish','Italian'];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $pokemonId   = (int)($_POST['pokemon_id']   ?? 0);
-    $title       = trim($_POST['title']          ?? '');
-    $description = trim($_POST['description']    ?? '');
-    $price       = (float)($_POST['price']       ?? 0);
-    $stock       = (int)($_POST['stock']         ?? 1);
+    $cardId         = (int)($_POST['card_id']         ?? 0);
+    $title          = trim($_POST['title']             ?? '');
+    $description    = trim($_POST['description']       ?? '');
+    $price          = (float)($_POST['price']          ?? 0);
+    $stock          = (int)($_POST['stock']            ?? 1);
+    $conditionGrade = trim($_POST['condition_grade']   ?? '');
+    $language       = trim($_POST['language']          ?? '');
 
-    if ($pokemonId <= 0)            $errors[] = 'Please select a Pokémon.';
+    if ($cardId <= 0)               $errors[] = 'Please select a card.';
     if (strlen($title) < 5)         $errors[] = 'Title must be at least 5 characters.';
     if ($price <= 0)                $errors[] = 'Price must be greater than 0.';
-    if ($stock < 1 || $stock > 99) $errors[] = 'Stock must be between 1 and 99.';
+    if ($stock < 1 || $stock > 99)  $errors[] = 'Stock must be between 1 and 99.';
+    if (!in_array($conditionGrade, $conditions)) $errors[] = 'Please select a condition.';
+    if (!in_array($language, $languages))        $errors[] = 'Please select a language.';
 
-    // Verify the pokemon_id exists
     if (empty($errors)) {
-        $chk = $pdo->prepare("SELECT pokemon_id FROM pokemon WHERE pokemon_id = ?");
-        $chk->execute([$pokemonId]);
-        if (!$chk->fetch()) $errors[] = 'Invalid Pokémon selected.';
+        $chk = $pdo->prepare("SELECT card_id FROM cards WHERE card_id = ?");
+        $chk->execute([$cardId]);
+        if (!$chk->fetch()) $errors[] = 'Invalid card selected.';
     }
 
     if (empty($errors)) {
         $stmt = $pdo->prepare("
-            INSERT INTO listings (seller_id, pokemon_id, title, description, price, stock)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO listings (seller_id, card_id, title, description, price, stock, condition_grade, language)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
-        $stmt->execute([$_SESSION['user_id'], $pokemonId, $title, $description, $price, $stock]);
+        $stmt->execute([$_SESSION['user_id'], $cardId, $title, $description, $price, $stock, $conditionGrade, $language]);
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Listing created successfully!'];
         header('Location: /my-listings.php'); exit;
     }
@@ -57,20 +62,42 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="card border-0 shadow-sm rounded-4 p-4">
         <form method="POST" class="needs-validation" novalidate>
 
-            <!-- Pokemon Select -->
+            <!-- Card Select -->
             <div class="mb-3">
-                <label for="pokemon_id" class="form-label fw-semibold">Select Pokémon <span class="text-danger">*</span></label>
-                <select class="form-select" id="pokemon_id" name="pokemon_id" required aria-describedby="pokemonHelp">
-                    <option value="">— Choose a Pokémon —</option>
-                    <?php foreach ($allPokemon as $p): ?>
-                    <option value="<?= $p['pokemon_id'] ?>"
-                        <?= (isset($_POST['pokemon_id']) && $_POST['pokemon_id'] == $p['pokemon_id']) ? 'selected' : '' ?>>
-                        <?= e($p['name']) ?> (<?= e($p['type_primary']) ?> · <?= e($p['rarity']) ?>)
+                <label for="card_id" class="form-label fw-semibold">Select Card <span class="text-danger">*</span></label>
+                <select class="form-select" id="card_id" name="card_id" required aria-describedby="cardHelp">
+                    <option value="">— Choose a Card —</option>
+                    <?php foreach ($allCards as $c): ?>
+                    <option value="<?= $c['card_id'] ?>"
+                        <?= (isset($_POST['card_id']) && $_POST['card_id'] == $c['card_id']) ? 'selected' : '' ?>>
+                        <?= e($c['card_name']) ?> — <?= e($c['set_name']) ?> (<?= e($c['typing']) ?> · <?= e($c['rarity']) ?>)
                     </option>
                     <?php endforeach; ?>
                 </select>
-                <div id="pokemonHelp" class="form-text">Choose which Pokémon you are selling.</div>
-                <div class="invalid-feedback">Please select a Pokémon.</div>
+                <div id="cardHelp" class="form-text">Choose which card you are selling.</div>
+                <div class="invalid-feedback">Please select a card.</div>
+            </div>
+
+            <!-- Condition & Language -->
+            <div class="row g-3 mb-3">
+                <div class="col-6">
+                    <label for="condition_grade" class="form-label fw-semibold">Condition <span class="text-danger">*</span></label>
+                    <select class="form-select" id="condition_grade" name="condition_grade" required>
+                        <option value="">— Select —</option>
+                        <?php foreach ($conditions as $cond): ?>
+                        <option value="<?= $cond ?>" <?= (isset($_POST['condition_grade']) && $_POST['condition_grade'] === $cond) ? 'selected' : '' ?>><?= $cond ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="col-6">
+                    <label for="language" class="form-label fw-semibold">Language <span class="text-danger">*</span></label>
+                    <select class="form-select" id="language" name="language" required>
+                        <option value="">— Select —</option>
+                        <?php foreach ($languages as $lang): ?>
+                        <option value="<?= $lang ?>" <?= (isset($_POST['language']) && $_POST['language'] === $lang) ? 'selected' : '' ?>><?= $lang ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
             </div>
 
             <!-- Title -->
@@ -86,7 +113,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <div class="mb-3">
                 <label for="description" class="form-label fw-semibold">Description</label>
                 <textarea class="form-control" id="description" name="description" rows="4"
-                          placeholder="Describe your Pokémon — nature, moves, IVs, etc."><?= isset($_POST['description']) ? e($_POST['description']) : '' ?></textarea>
+                          placeholder="Describe the card — condition details, centering, etc."><?= isset($_POST['description']) ? e($_POST['description']) : '' ?></textarea>
             </div>
 
             <!-- Price & Stock -->

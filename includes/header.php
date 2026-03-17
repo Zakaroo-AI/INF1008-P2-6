@@ -63,7 +63,7 @@ $currentPage   = basename($_SERVER['PHP_SELF']);
             <form class="d-flex me-3" action="/browse.php" method="GET" role="search">
                 <div class="input-group">
                     <input class="form-control form-control-sm" type="search" name="q"
-                           placeholder="Search Pokémon..." aria-label="Search Pokémon"
+                           placeholder="Search cards..." aria-label="Search cards"
                            value="<?= isset($_GET['q']) ? e($_GET['q']) : '' ?>"
                            id="searchInput" autocomplete="off">
                     <button class="btn btn-warning btn-sm" type="submit" aria-label="Submit search">

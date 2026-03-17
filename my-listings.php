@@ -20,9 +20,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_id'])) {
 }
 
 $stmt = $pdo->prepare("
-    SELECT l.*, p.name AS pokemon_name, p.image_url, p.type_primary, p.rarity
+    SELECT l.*, c.card_name, c.image_url, c.typing, c.rarity
     FROM listings l
-    JOIN pokemon p ON l.pokemon_id = p.pokemon_id
+    JOIN cards c ON l.card_id = c.card_id
     WHERE l.seller_id = ?
     ORDER BY l.created_at DESC
 ");
@@ -52,7 +52,7 @@ $listings = $stmt->fetchAll();
             <table class="table table-hover align-middle mb-0">
                 <thead class="table-dark">
                     <tr>
-                        <th>Pokémon</th>
+                        <th>Card</th>
                         <th>Title</th>
                         <th>Price</th>
                         <th>Stock</th>
@@ -65,12 +65,12 @@ $listings = $stmt->fetchAll();
                     <tr>
                         <td>
                             <div class="d-flex align-items-center gap-2">
-                                <img src="<?= e($l['image_url']) ?>" alt="<?= e($l['pokemon_name']) ?>"
+                                <img src="<?= e($l['image_url']) ?>" alt="<?= e($l['card_name']) ?>"
                                      style="width:44px;height:44px;object-fit:contain;background:#eef0ff;border-radius:8px;">
                                 <div>
-                                    <div class="fw-bold small"><?= e($l['pokemon_name']) ?></div>
-                                    <span class="type-badge" style="background:<?= typeBadgeColor($l['type_primary']) ?>; font-size:0.65rem;">
-                                        <?= e($l['type_primary']) ?>
+                                    <div class="fw-bold small"><?= e($l['card_name']) ?></div>
+                                    <span class="type-badge" style="background:<?= typeBadgeColor($l['typing']) ?>; font-size:0.65rem;">
+                                        <?= e($l['typing']) ?>
                                     </span>
                                 </div>
                             </div>

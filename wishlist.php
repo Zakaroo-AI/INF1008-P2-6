@@ -11,10 +11,10 @@ $userId = $_SESSION['user_id'];
 
 $stmt = $pdo->prepare("
     SELECT w.wishlist_id, w.added_at, l.listing_id, l.title, l.price, l.status, l.stock,
-           p.name AS pokemon_name, p.image_url, p.type_primary, p.type_secondary, p.rarity
+           c.card_name, c.image_url, c.typing, c.rarity
     FROM wishlist w
     JOIN listings l ON w.listing_id = l.listing_id
-    JOIN pokemon  p ON l.pokemon_id = p.pokemon_id
+    JOIN cards    c ON l.card_id    = c.card_id
     WHERE w.user_id = ?
     ORDER BY w.added_at DESC
 ");
@@ -42,20 +42,15 @@ $wishItems = $stmt->fetchAll();
             <article class="card listing-card h-100">
                 <a href="/listing.php?id=<?= $item['listing_id'] ?>">
                     <img src="<?= e($item['image_url']) ?>"
-                         alt="<?= e($item['pokemon_name']) ?>"
+                         alt="<?= e($item['card_name']) ?>"
                          class="card-img-top" loading="lazy">
                 </a>
                 <div class="card-body d-flex flex-column">
                     <div class="mb-2">
-                        <span class="type-badge" style="background:<?= typeBadgeColor($item['type_primary']) ?>">
-                            <?= e($item['type_primary']) ?>
+                        <span class="type-badge" style="background:<?= typeBadgeColor($item['typing']) ?>">
+                            <?= e($item['typing']) ?>
                         </span>
-                        <?php if ($item['type_secondary']): ?>
-                        <span class="type-badge ms-1" style="background:<?= typeBadgeColor($item['type_secondary']) ?>">
-                            <?= e($item['type_secondary']) ?>
-                        </span>
-                        <?php endif; ?>
-                        <span class="badge ms-1 rarity-<?= strtolower(e($item['rarity'])) ?>">
+                        <span class="badge ms-1 rarity-<?= strtolower(str_replace(' ','-',e($item['rarity']))) ?>">
                             <?= e($item['rarity']) ?>
                         </span>
                     </div>

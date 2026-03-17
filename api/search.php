@@ -11,11 +11,11 @@ $pdo = getPDO();
 if (strlen($q) < 2) { echo json_encode([]); exit; }
 
 $stmt = $pdo->prepare("
-    SELECT DISTINCT p.name
-    FROM pokemon p
-    JOIN listings l ON l.pokemon_id = p.pokemon_id
-    WHERE p.name LIKE ? AND l.status = 'active'
-    ORDER BY p.name ASC
+    SELECT DISTINCT c.card_name
+    FROM cards c
+    JOIN listings l ON l.card_id = c.card_id
+    WHERE c.card_name LIKE ? AND l.status = 'active'
+    ORDER BY c.card_name ASC
     LIMIT 8
 ");
 $stmt->execute(["%$q%"]);

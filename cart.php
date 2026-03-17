@@ -13,10 +13,10 @@ $userId = $_SESSION['user_id'];
 $stmt = $pdo->prepare("
     SELECT c.cart_id, c.quantity, c.listing_id,
            l.title, l.price, l.stock, l.status,
-           p.name AS pokemon_name, p.image_url, p.type_primary
+           ca.card_name, ca.image_url, ca.typing
     FROM cart c
-    JOIN listings l ON c.listing_id = l.listing_id
-    JOIN pokemon  p ON l.pokemon_id = p.pokemon_id
+    JOIN listings l  ON c.listing_id = l.listing_id
+    JOIN cards    ca ON l.card_id    = ca.card_id
     WHERE c.user_id = ?
     ORDER BY c.added_at DESC
 ");
@@ -51,7 +51,7 @@ foreach ($cartItems as $item) {
                 <div class="d-flex align-items-center gap-3 flex-wrap">
                     <!-- Image -->
                     <img src="<?= e($item['image_url']) ?>"
-                         alt="<?= e($item['pokemon_name']) ?>"
+                         alt="<?= e($item['card_name']) ?>"
                          class="cart-item-img">
 
                     <!-- Info -->
@@ -61,8 +61,8 @@ foreach ($cartItems as $item) {
                                 <?= e($item['title']) ?>
                             </a>
                         </h2>
-                        <span class="type-badge" style="background:<?= typeBadgeColor($item['type_primary']) ?>; font-size:0.7rem;">
-                            <?= e($item['type_primary']) ?>
+                        <span class="type-badge" style="background:<?= typeBadgeColor($item['typing']) ?>; font-size:0.7rem;">
+                            <?= e($item['typing']) ?>
                         </span>
                         <p class="mb-0 mt-1 text-primary fw-bold">$<?= number_format($item['price'], 2) ?> each</p>
                     </div>
@@ -93,7 +93,7 @@ foreach ($cartItems as $item) {
                         </p>
                         <button class="btn btn-sm btn-outline-danger remove-cart-btn"
                                 data-listing="<?= $item['listing_id'] ?>"
-                                aria-label="Remove <?= e($item['pokemon_name']) ?> from cart">
+                                aria-label="Remove <?= e($item['card_name']) ?> from cart">
                             <i class="bi bi-trash"></i> Remove
                         </button>
                     </div>

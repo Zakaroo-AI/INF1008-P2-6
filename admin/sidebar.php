@@ -32,7 +32,7 @@ $adminPage = basename($_SERVER['PHP_SELF']);
             </li>
             <li class="nav-item">
                 <a class="nav-link <?= $adminPage==='pokemon.php' ? 'active':'' ?>" href="/admin/pokemon.php">
-                    <i class="bi bi-collection me-2"></i>Pokémon
+                    <i class="bi bi-collection me-2"></i>Cards
                 </a>
             </li>
             <li class="nav-item mt-3">

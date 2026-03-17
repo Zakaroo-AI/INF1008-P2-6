@@ -13,10 +13,10 @@ $userId = $_SESSION['user_id'];
 $stmt = $pdo->prepare("
     SELECT c.quantity, c.listing_id,
            l.title, l.price, l.stock, l.status, l.seller_id,
-           p.name AS pokemon_name, p.image_url
+           ca.card_name, ca.image_url
     FROM cart c
-    JOIN listings l ON c.listing_id = l.listing_id
-    JOIN pokemon  p ON l.pokemon_id = p.pokemon_id
+    JOIN listings l  ON c.listing_id = l.listing_id
+    JOIN cards    ca ON l.card_id    = ca.card_id
     WHERE c.user_id = ?
 ");
 $stmt->execute([$userId]);
@@ -36,9 +36,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate stock for each item
     foreach ($cartItems as $item) {
         if ($item['status'] !== 'active') {
-            $errors[] = e($item['pokemon_name']) . ' is no longer available.';
+            $errors[] = e($item['card_name']) . ' is no longer available.';
         } elseif ($item['stock'] < $item['quantity']) {
-            $errors[] = 'Not enough stock for ' . e($item['pokemon_name']) . '. Only ' . $item['stock'] . ' left.';
+            $errors[] = 'Not enough stock for ' . e($item['card_name']) . '. Only ' . $item['stock'] . ' left.';
         }
     }
 
@@ -97,7 +97,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <h2 class="h6 fw-bold mb-3">Order Items</h2>
                 <?php foreach ($cartItems as $item): ?>
                 <div class="d-flex align-items-center gap-3 mb-3 pb-3 border-bottom">
-                    <img src="<?= e($item['image_url']) ?>" alt="<?= e($item['pokemon_name']) ?>"
+                    <img src="<?= e($item['image_url']) ?>" alt="<?= e($item['card_name']) ?>"
                          style="width:56px;height:56px;object-fit:contain;background:#eef0ff;border-radius:10px;padding:4px;">
                     <div class="flex-grow-1">
                         <p class="mb-0 fw-bold small"><?= e($item['title']) ?></p>

@@ -9,10 +9,9 @@ $pdo = getPDO();
 
 // Fetch 6 featured active listings (most recent)
 $featured = $pdo->query("
-    SELECT l.*, p.name AS pokemon_name, p.type_primary, p.type_secondary,
-           p.rarity, p.image_url
+    SELECT l.*, c.card_name, c.typing, c.rarity, c.image_url, l.condition_grade
     FROM listings l
-    JOIN pokemon  p ON l.pokemon_id = p.pokemon_id
+    JOIN cards c ON l.card_id = c.card_id
     WHERE l.status = 'active'
     ORDER BY l.created_at DESC
     LIMIT 6
@@ -23,8 +22,8 @@ $totalListings = $pdo->query("SELECT COUNT(*) FROM listings WHERE status='active
 $totalUsers    = $pdo->query("SELECT COUNT(*) FROM users WHERE role='trainer'")->fetchColumn();
 $totalSold     = $pdo->query("SELECT COUNT(*) FROM order_items")->fetchColumn();
 
-// Pokémon types for the filter buttons
-$types = ['Fire','Water','Grass','Electric','Psychic','Ghost','Dragon','Dark','Fighting','Normal','Fairy','Rock'];
+// Card types for the filter buttons
+$types = ['Fire','Water','Grass','Lightning','Psychic','Fighting','Darkness','Metal','Dragon','Colorless','Fairy'];
 ?>
 
 <!-- Hero -->
@@ -32,9 +31,9 @@ $types = ['Fire','Water','Grass','Electric','Psychic','Ghost','Dragon','Dark','F
     <div class="container text-center position-relative" style="z-index:1;">
         <h1 class="display-4 fw-bold mb-3">
             The World's #1<br>
-            <span class="text-warning">Pokémon Marketplace</span>
+            <span class="text-warning">Pokémon Card Marketplace</span>
         </h1>
-        <p class="lead mb-4">Buy, sell and trade Pokémon with trainers across the globe.<br>Thousands of listings. Real trainers. Secure transactions.</p>
+        <p class="lead mb-4">Buy, sell and trade Pokémon cards with collectors across the globe.<br>Thousands of listings. Real collectors. Secure transactions.</p>
         <a href="/browse.php" class="btn btn-warning btn-lg fw-bold me-2 px-5">
             <i class="bi bi-search me-2"></i>Browse Now
         </a>
@@ -44,7 +43,7 @@ $types = ['Fire','Water','Grass','Electric','Psychic','Ghost','Dragon','Dark','F
         </a>
         <?php else: ?>
         <a href="/create-listing.php" class="btn btn-outline-light btn-lg px-5">
-            <i class="bi bi-plus-circle me-2"></i>Sell a Pokémon
+            <i class="bi bi-plus-circle me-2"></i>Sell a Card
         </a>
         <?php endif; ?>
 
@@ -77,7 +76,7 @@ $types = ['Fire','Water','Grass','Electric','Psychic','Ghost','Dragon','Dark','F
     <h2 class="section-title">Browse by Type</h2>
     <div class="d-flex flex-wrap gap-2">
         <?php foreach ($types as $type): ?>
-            <a href="/browse.php?type=<?= urlencode($type) ?>"
+            <a href="/browse.php?typing=<?= urlencode($type) ?>"
                class="type-badge text-decoration-none"
                style="background:<?= typeBadgeColor($type) ?>; padding: 6px 16px; font-size:0.9rem;">
                 <?= e($type) ?>
@@ -94,7 +93,7 @@ $types = ['Fire','Water','Grass','Electric','Psychic','Ghost','Dragon','Dark','F
     </div>
 
     <?php if (empty($featured)): ?>
-        <p class="text-muted">No listings yet. Be the first to <a href="/create-listing.php">sell a Pokémon</a>!</p>
+        <p class="text-muted">No listings yet. Be the first to <a href="/create-listing.php">sell a card</a>!</p>
     <?php else: ?>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
         <?php foreach ($featured as $listing): ?>
@@ -103,22 +102,20 @@ $types = ['Fire','Water','Grass','Electric','Psychic','Ghost','Dragon','Dark','F
                 <a href="/listing.php?id=<?= $listing['listing_id'] ?>">
                     <img src="<?= e($listing['image_url']) ?>"
                          class="card-img-top"
-                         alt="<?= e($listing['pokemon_name']) ?>"
+                         alt="<?= e($listing['card_name']) ?>"
                          loading="lazy">
                 </a>
                 <div class="card-body d-flex flex-column">
-                    <!-- Types -->
+                    <!-- Type & Rarity -->
                     <div class="mb-2">
-                        <span class="type-badge" style="background:<?= typeBadgeColor($listing['type_primary']) ?>">
-                            <?= e($listing['type_primary']) ?>
+                        <span class="type-badge" style="background:<?= typeBadgeColor($listing['typing']) ?>">
+                            <?= e($listing['typing']) ?>
                         </span>
-                        <?php if ($listing['type_secondary']): ?>
-                        <span class="type-badge ms-1" style="background:<?= typeBadgeColor($listing['type_secondary']) ?>">
-                            <?= e($listing['type_secondary']) ?>
-                        </span>
-                        <?php endif; ?>
-                        <span class="badge ms-1 rarity-<?= strtolower(e($listing['rarity'])) ?>">
+                        <span class="badge ms-1 rarity-<?= strtolower(str_replace(' ','-', e($listing['rarity']))) ?>">
                             <?= e($listing['rarity']) ?>
+                        </span>
+                        <span class="badge ms-1 condition-<?= strtolower(str_replace(' ','-', e($listing['condition_grade']))) ?>">
+                            <?= e($listing['condition_grade']) ?>
                         </span>
                     </div>
                     <h3 class="card-title fs-6 fw-bold">
@@ -147,7 +144,7 @@ $types = ['Fire','Water','Grass','Electric','Psychic','Ghost','Dragon','Dark','F
             <div class="col-md-4">
                 <div class="display-4 text-primary mb-3" aria-hidden="true"><i class="bi bi-search"></i></div>
                 <h3 class="h5 fw-bold">1. Browse Listings</h3>
-                <p class="text-muted small">Search and filter thousands of Pokémon listings by type, rarity, and price.</p>
+                <p class="text-muted small">Search and filter thousands of card listings by type, rarity, condition, and price.</p>
             </div>
             <div class="col-md-4">
                 <div class="display-4 text-primary mb-3" aria-hidden="true"><i class="bi bi-cart3"></i></div>
@@ -157,7 +154,7 @@ $types = ['Fire','Water','Grass','Electric','Psychic','Ghost','Dragon','Dark','F
             <div class="col-md-4">
                 <div class="display-4 text-primary mb-3" aria-hidden="true"><i class="bi bi-stars"></i></div>
                 <h3 class="h5 fw-bold">3. Become a Seller</h3>
-                <p class="text-muted small">List your own Pokémon for sale. Manage your listings and track your orders.</p>
+                <p class="text-muted small">List your own cards for sale. Manage your listings and track your orders.</p>
             </div>
         </div>
     </div>

@@ -85,10 +85,24 @@ body {
 }
 
 /* ---- Rarity Badge ---- */
-.rarity-legendary { background: linear-gradient(90deg, #fd7e14, #ffc107); color: #1a1a1a !important; }
-.rarity-epic      { background: linear-gradient(90deg, #6f42c1, #9c6dd8); }
-.rarity-rare      { background: linear-gradient(90deg, #0d6efd, #4d94ff); }
-.rarity-common    { background: #6c757d; }
+.rarity-common        { background: #6c757d; color: #fff; }
+.rarity-uncommon      { background: #198754; color: #fff; }
+.rarity-rare          { background: linear-gradient(90deg, #0d6efd, #4d94ff); color: #fff; }
+.rarity-holo-rare     { background: linear-gradient(90deg, #0d6efd, #9c6dd8); color: #fff; }
+.rarity-ultra-rare    { background: linear-gradient(90deg, #6f42c1, #fd7e14); color: #fff; }
+.rarity-secret-rare   { background: linear-gradient(90deg, #fd7e14, #ffc107); color: #1a1a1a !important; }
+
+/* ---- Condition Badge (PSA 1–10) ---- */
+.condition-psa-1  { background: #dc3545; color: #fff; }
+.condition-psa-2  { background: #e0503a; color: #fff; }
+.condition-psa-3  { background: #fd7e14; color: #fff; }
+.condition-psa-4  { background: #f08030; color: #fff; }
+.condition-psa-5  { background: #ffc107; color: #1a1a1a; }
+.condition-psa-6  { background: #d4b800; color: #1a1a1a; }
+.condition-psa-7  { background: #20c997; color: #fff; }
+.condition-psa-8  { background: #0d9e72; color: #fff; }
+.condition-psa-9  { background: #198754; color: #fff; }
+.condition-psa-10 { background: linear-gradient(90deg, #ffc107, #fd7e14); color: #1a1a1a; font-weight: 700; }
 
 /* ---- Buttons ---- */
 .btn-pm-primary {

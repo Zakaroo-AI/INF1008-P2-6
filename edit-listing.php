@@ -11,8 +11,8 @@ $listingId = (int)($_GET['id'] ?? 0);
 
 // Fetch listing — verify ownership
 $stmt = $pdo->prepare("
-    SELECT l.*, p.name AS pokemon_name
-    FROM listings l JOIN pokemon p ON l.pokemon_id = p.pokemon_id
+    SELECT l.*, c.card_name
+    FROM listings l JOIN cards c ON l.card_id = c.card_id
     WHERE l.listing_id = ? AND l.seller_id = ?
 ");
 $stmt->execute([$listingId, $_SESSION['user_id']]);
@@ -23,24 +23,28 @@ if (!$listing) {
     header('Location: /my-listings.php'); exit;
 }
 
+$conditions = ['PSA 1','PSA 2','PSA 3','PSA 4','PSA 5','PSA 6','PSA 7','PSA 8','PSA 9','PSA 10'];
+
 $errors = [];
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $title       = trim($_POST['title']       ?? '');
-    $description = trim($_POST['description'] ?? '');
-    $price       = (float)($_POST['price']    ?? 0);
-    $stock       = (int)($_POST['stock']      ?? 1);
-    $status      = $_POST['status'] ?? 'active';
+    $title          = trim($_POST['title']          ?? '');
+    $description    = trim($_POST['description']    ?? '');
+    $price          = (float)($_POST['price']       ?? 0);
+    $stock          = (int)($_POST['stock']         ?? 1);
+    $status         = $_POST['status']              ?? 'active';
+    $conditionGrade = $_POST['condition_grade']     ?? '';
 
     if (strlen($title) < 5)         $errors[] = 'Title must be at least 5 characters.';
     if ($price <= 0)                $errors[] = 'Price must be greater than 0.';
     if ($stock < 0 || $stock > 99)  $errors[] = 'Stock must be between 0 and 99.';
     if (!in_array($status, ['active','removed'])) $errors[] = 'Invalid status.';
+    if (!in_array($conditionGrade, $conditions))  $errors[] = 'Please select a valid condition.';
 
     if (empty($errors)) {
         $pdo->prepare("
-            UPDATE listings SET title=?, description=?, price=?, stock=?, status=?
+            UPDATE listings SET title=?, description=?, price=?, stock=?, status=?, condition_grade=?
             WHERE listing_id=? AND seller_id=?
-        ")->execute([$title, $description, $price, $stock, $status, $listingId, $_SESSION['user_id']]);
+        ")->execute([$title, $description, $price, $stock, $status, $conditionGrade, $listingId, $_SESSION['user_id']]);
         $_SESSION['flash'] = ['type' => 'success', 'message' => 'Listing updated!'];
         header('Location: /my-listings.php'); exit;
     }
@@ -51,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <h1 class="h2 fw-bold mb-4" style="color:var(--pm-blue);">
         <i class="bi bi-pencil me-2"></i>Edit Listing
     </h1>
-    <p class="text-muted mb-4">Editing: <strong><?= e($listing['pokemon_name']) ?></strong></p>
+    <p class="text-muted mb-4">Editing: <strong><?= e($listing['card_name']) ?></strong></p>
 
     <?php if (!empty($errors)): ?>
     <div class="alert alert-danger"><ul class="mb-0"><?php foreach ($errors as $err): ?><li><?= e($err) ?></li><?php endforeach; ?></ul></div>
@@ -86,6 +90,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                            value="<?= e($_POST['stock'] ?? $listing['stock']) ?>"
                            required min="0" max="99">
                 </div>
+            </div>
+            <div class="mb-3">
+                <label for="condition_grade" class="form-label fw-semibold">Condition (PSA Grade)</label>
+                <select class="form-select" id="condition_grade" name="condition_grade" required>
+                    <?php foreach ($conditions as $cond): ?>
+                    <option value="<?= $cond ?>" <?= (($_POST['condition_grade'] ?? $listing['condition_grade']) === $cond) ? 'selected' : '' ?>><?= $cond ?></option>
+                    <?php endforeach; ?>
+                </select>
             </div>
             <div class="mb-4">
                 <label for="status" class="form-label fw-semibold">Status</label>
