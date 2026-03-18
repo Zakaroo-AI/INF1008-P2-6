@@ -7,6 +7,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initCartButtons();
     initWishlistButtons();
     animateStatBars();
+    initNavbarScroll();
 });
 
 // ---- SEARCH AUTOCOMPLETE ----------------------------------------
@@ -193,6 +194,24 @@ window.addEventListener('load', () => {
         }, false);
     });
 });
+
+// ---- NAVBAR HIDE ON SCROLL --------------------------------------
+function initNavbarScroll() {
+    const navbar = document.querySelector('.pm-navbar');
+    if (!navbar) return;
+
+    let prevY = window.scrollY;
+
+    window.addEventListener('scroll', () => {
+        const y = window.scrollY;
+        if (y > prevY && y > 56) {
+            navbar.classList.add('navbar-hidden');
+        } else if (y < prevY) {
+            navbar.classList.remove('navbar-hidden');
+        }
+        prevY = y;
+    }, { passive: true });
+}
 
 // Expose showToast globally for inline use
 window.showToast = showToast;

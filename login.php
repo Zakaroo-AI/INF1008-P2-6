@@ -2,9 +2,9 @@
 // ============================================================
 // login.php — User Login
 // ============================================================
-ob_start();
-$pageTitle = 'Login';
-require_once 'includes/header.php';
+if (session_status() === PHP_SESSION_NONE) session_start();
+require_once 'config/db.php';
+require_once 'includes/auth.php';
 
 $error = '';
 
@@ -43,6 +43,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
+$pageTitle = 'Login';
+require_once 'includes/header.php';
 ?>
 
 <div class="container py-5" style="max-width:440px;">

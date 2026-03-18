@@ -75,8 +75,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <?php
             $team = [
                 ['name' => 'Lee Hong Yih', 'role' => 'Head Developer',       'icon' => 'person-badge'],
-                ['name' => 'Jamie Torres', 'role' => 'Head of Technology',   'icon' => 'cpu'],
-                ['name' => 'Sam Lee',      'role' => 'Marketplace Manager',  'icon' => 'shop']
+                ['name' => 'Felix', 'role' => 'Developer',   'icon' => 'cpu'],
+                ['name' => 'Yong Heng',      'role' => 'Developer',  'icon' => 'shop']
             ];
             foreach ($team as $member): ?>
             <div class="col text-center">

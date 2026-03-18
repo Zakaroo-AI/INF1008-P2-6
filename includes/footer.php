@@ -39,7 +39,7 @@
         </div>
         <hr class="border-secondary mt-3">
         <p class="text-center text-secondary small mb-0">
-            &copy; <?= date('Y') ?> PokéMart Global &mdash; A fictitious company for INF1005.
+            &copy; <?= date('Y') ?> PokéMart Global - A fictitious company for INF1005.
         </p>
     </div>
 </footer>

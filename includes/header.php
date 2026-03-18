@@ -141,10 +141,10 @@ $currentPage   = basename($_SERVER['PHP_SELF']);
     </div>
 </nav>
 
-<!-- Flash message -->
+<!-- Flash message (fixed position — does not affect page layout or sidebar) -->
 <?php if (isset($_SESSION['flash'])): ?>
-<div class="container mt-3">
-    <div class="alert alert-<?= e($_SESSION['flash']['type']) ?> alert-dismissible fade show" role="alert">
+<div class="flash-fixed">
+    <div class="alert alert-<?= e($_SESSION['flash']['type']) ?> alert-dismissible fade show shadow" role="alert">
         <?= e($_SESSION['flash']['message']) ?>
         <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
     </div>

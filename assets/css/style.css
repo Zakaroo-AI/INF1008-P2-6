@@ -21,6 +21,22 @@ body {
 .pm-navbar {
     background: linear-gradient(135deg, var(--pm-blue) 0%, #1e2a7a 100%);
     box-shadow: 0 2px 12px rgba(0,0,0,0.2);
+    transition: transform 0.3s ease;
+}
+.pm-navbar.navbar-hidden {
+    transform: translateY(-100%);
+}
+
+/* ---- Flash notification (fixed — no layout impact, no sidebar gap) ---- */
+.flash-fixed {
+    position: fixed;
+    top: 68px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 1045;
+    min-width: 320px;
+    max-width: min(600px, 92vw);
+    width: auto;
 }
 
 /* ---- Footer ---- */
