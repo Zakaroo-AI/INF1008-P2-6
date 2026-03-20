@@ -323,6 +323,15 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
     animation: cardFadeIn 0.4s ease forwards;
 }
 
+/* ---- Filter sidebar sticky — drops down when navbar hides on scroll ---- */
+.filter-sticky {
+    top: 76px;
+    transition: top 0.3s ease;
+}
+body:has(.pm-navbar.navbar-hidden) .filter-sticky {
+    top: 8px;
+}
+
 /* ---- Page fade-in (main content only — navbar stays fixed) ---- */
 @keyframes pageFadeIn {
     from { opacity: 0; transform: translateY(6px); }

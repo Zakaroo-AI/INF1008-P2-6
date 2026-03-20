@@ -65,7 +65,7 @@ require_once 'includes/header.php';
                     <tr>
                         <td class="fw-bold">#<?= str_pad($order['order_id'], 4, '0', STR_PAD_LEFT) ?></td>
                         <td><?= date('d M Y', strtotime($order['created_at'])) ?></td>
-                        <td><?= $order['item_count'] ?> item<?= $order['item_count'] !== '1' ? 's' : '' ?></td>
+                        <td><?= $order['item_count'] ?> item<?= $order['item_count'] != 1 ? 's' : '' ?></td>
                         <td class="fw-bold text-primary">$<?= number_format($order['total_price'], 2) ?></td>
                         <td><?= statusBadge($order['status']) ?></td>
                         <td>

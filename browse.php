@@ -79,7 +79,7 @@ $languages  = ['English','Japanese','Korean','Chinese','German','French','Spanis
 
         <!-- Sidebar Filters -->
         <aside class="col-lg-3" aria-label="Listing filters">
-            <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top" style="top:80px;">
+            <div class="card border-0 shadow-sm rounded-4 p-4 sticky-top filter-sticky">
                 <h2 class="h6 fw-bold mb-3" style="color:var(--pm-blue);">
                     <i class="bi bi-funnel me-2"></i>Filter Listings
                 </h2>
