@@ -8,6 +8,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initWishlistButtons();
     animateStatBars();
     initNavbarScroll();
+    initCardAnimations();
 });
 
 // ---- SEARCH AUTOCOMPLETE ----------------------------------------
@@ -118,6 +119,12 @@ function updateCartUI(data) {
     if (badge) {
         badge.textContent = data.cart_count ?? 0;
         badge.style.display = (data.cart_count > 0) ? '' : 'none';
+        if (data.cart_count > 0) {
+            badge.classList.remove('badge-bounce');
+            void badge.offsetWidth; // force reflow to restart animation
+            badge.classList.add('badge-bounce');
+            badge.addEventListener('animationend', () => badge.classList.remove('badge-bounce'), { once: true });
+        }
     }
 }
 
@@ -211,6 +218,34 @@ function initNavbarScroll() {
         }
         prevY = y;
     }, { passive: true });
+}
+
+// ---- CARD ENTRANCE ANIMATIONS ----------------------------------
+function initCardAnimations() {
+    const cards = document.querySelectorAll('.listing-card');
+    if (!cards.length) return;
+
+    // Hide all cards initially
+    cards.forEach(card => { card.style.opacity = '0'; });
+
+    const observer = new IntersectionObserver((entries) => {
+        // Sort by position so stagger follows visual order
+        const visible = entries.filter(e => e.isIntersecting);
+        visible.forEach((entry, i) => {
+            const card = entry.target;
+            setTimeout(() => {
+                card.classList.add('card-visible');
+                // Once animation finishes, clean up so hover still works
+                card.addEventListener('animationend', () => {
+                    card.classList.remove('card-visible');
+                    card.style.opacity = '1';
+                }, { once: true });
+                observer.unobserve(card);
+            }, i * 60);
+        });
+    }, { threshold: 0.08 });
+
+    cards.forEach(card => observer.observe(card));
 }
 
 // Expose showToast globally for inline use

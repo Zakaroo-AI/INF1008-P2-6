@@ -304,8 +304,101 @@ body {
     .status-timeline::before { display: none; }
 }
 
-/* ---- Accessibility: focus rings ---- */
-a:focus, button:focus, input:focus, select:focus, textarea:focus {
+/* ---- Accessibility: no outline/shadow on mouse click, only on keyboard nav ---- */
+:focus:not(:focus-visible) {
+    outline: none !important;
+    box-shadow: none !important;
+}
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
     outline: 3px solid var(--pm-yellow);
     outline-offset: 2px;
+}
+
+/* ---- Card entrance animation ---- */
+@keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(22px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.listing-card.card-visible {
+    animation: cardFadeIn 0.4s ease forwards;
+}
+
+/* ---- Page fade-in (main content only — navbar stays fixed) ---- */
+@keyframes pageFadeIn {
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+main#main-content {
+    animation: pageFadeIn 0.35s ease forwards;
+}
+
+/* ---- Button & card press effect ---- */
+.btn:active {
+    transform: scale(0.95) !important;
+    transition: transform 0.08s ease !important;
+}
+.listing-card:active {
+    transform: translateY(-2px) scale(0.97) !important;
+    transition: transform 0.08s ease !important;
+}
+
+/* ---- Hero section float ---- */
+@keyframes heroFloat {
+    0%, 100% { transform: translateY(0); }
+    50%       { transform: translateY(-12px); }
+}
+.pm-hero .container {
+    animation: heroFloat 5s ease-in-out infinite;
+}
+
+/* ---- Rarity badge shimmer (premium rarities only) ---- */
+@keyframes shimmerSweep {
+    0%   { left: -100%; }
+    100% { left: 200%; }
+}
+.rarity-holo-rare,
+.rarity-ultra-rare,
+.rarity-hyper-rare,
+.rarity-special-illustration-rare,
+.rarity-shiny-ultra-rare,
+.rarity-illustration-rare,
+.rarity-shiny-rare,
+.rarity-ace-spec-rare {
+    position: relative;
+    overflow: hidden;
+}
+.rarity-holo-rare::after,
+.rarity-ultra-rare::after,
+.rarity-hyper-rare::after,
+.rarity-special-illustration-rare::after,
+.rarity-shiny-ultra-rare::after,
+.rarity-illustration-rare::after,
+.rarity-shiny-rare::after,
+.rarity-ace-spec-rare::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 60%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.45), transparent);
+    animation: shimmerSweep 2.5s ease-in-out infinite;
+    pointer-events: none;
+}
+.rarity-ultra-rare::after                { animation-delay: 0.4s; }
+.rarity-hyper-rare::after                { animation-delay: 0.8s; }
+.rarity-special-illustration-rare::after { animation-delay: 1.2s; }
+.rarity-shiny-ultra-rare::after          { animation-delay: 0.2s; }
+.rarity-illustration-rare::after         { animation-delay: 0.6s; }
+.rarity-shiny-rare::after                { animation-delay: 1.0s; }
+.rarity-ace-spec-rare::after             { animation-delay: 1.4s; }
+
+/* ---- Cart badge bounce ---- */
+@keyframes badgeBounce {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); }
+    40%       { transform: translate(-50%, -50%) scale(1.65); }
+    70%       { transform: translate(-50%, -50%) scale(0.85); }
+}
+.badge-bounce {
+    animation: badgeBounce 0.45s ease forwards !important;
 }
