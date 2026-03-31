@@ -18,8 +18,13 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
+require_once __DIR__ . '/../vendor/autoload.php';
+
+$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
+$dotenv->load();
+
 // Load configuration
-$apiKey = getenv('ANTHROPIC_API_KEY');
+$apiKey = $_ENV['ANTHROPIC_API_KEY'] ?? getenv('ANTHROPIC_API_KEY') ?? null;
 if (!$apiKey) {
     // Fallback: check if it's defined in a config file
     $apiKey = defined('ANTHROPIC_API_KEY') ? ANTHROPIC_API_KEY : null;
