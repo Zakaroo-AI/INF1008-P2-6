@@ -1,7 +1,7 @@
 <?php
 /**
  * PokéTrainer AI Backend API
- * Connects to Anthropic Claude API for intelligent Pokémon card responses
+ * Connects to the OpenAI Responses API for intelligent Pokémon card responses
  * 
  * Endpoint: /api/trainer-chat.php
  * Methods: POST
@@ -20,7 +20,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 
 bootstrapEnvironment(__DIR__ . '/..');
 
-$apiKey = readEnvironmentValue('ANTHROPIC_API_KEY');
+$apiKey = readEnvironmentValue('OPENAI_API_KEY');
 $hasCurl = extension_loaded('curl');
 
 if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
@@ -51,7 +51,7 @@ if ($action === 'health_check') {
     $issues = [];
 
     if (!$apiKey) {
-        $issues[] = 'Missing ANTHROPIC_API_KEY';
+        $issues[] = 'Missing OPENAI_API_KEY';
     }
 
     if (!$hasCurl) {
@@ -62,7 +62,7 @@ if ($action === 'health_check') {
         'success' => empty($issues),
         'status' => empty($issues) ? 'connected' : 'degraded',
         'message' => empty($issues) ? 'Backend AI is ready' : implode('. ', $issues),
-        'provider' => 'anthropic'
+        'provider' => 'openai'
     ]);
     exit;
 }
@@ -70,7 +70,7 @@ if ($action === 'health_check') {
 if (!$apiKey) {
     http_response_code(500);
     echo json_encode([
-        'error' => 'Anthropic API key not configured. Please set ANTHROPIC_API_KEY in .env or the server environment.',
+        'error' => 'OpenAI API key not configured. Please set OPENAI_API_KEY in .env or the server environment.',
         'success' => false
     ]);
     exit;
@@ -100,14 +100,19 @@ if ($action === 'chat') {
     }
 
     try {
-        $response = callAnthropicAPI($apiKey, $userMessage, $history);
+        $response = callOpenAIResponsesAPI($apiKey, $userMessage, $history);
         echo json_encode([
             'success' => true,
             'reply' => $response,
             'message' => 'Response generated successfully'
         ]);
-    } catch (Exception $e) {
-        http_response_code(500);
+    } catch (Throwable $e) {
+        $statusCode = $e->getCode();
+        if (!is_int($statusCode) || $statusCode < 400 || $statusCode > 599) {
+            $statusCode = 500;
+        }
+
+        http_response_code($statusCode);
         echo json_encode([
             'error' => $e->getMessage(),
             'success' => false
@@ -124,9 +129,9 @@ echo json_encode([
 ]);
 
 /**
- * Call Anthropic Claude API with system prompt for Pokémon expertise
+ * Call OpenAI Responses API with system prompt for Pokémon expertise.
  */
-function callAnthropicAPI($apiKey, $userMessage, $conversationHistory = [])
+function callOpenAIResponsesAPI($apiKey, $userMessage, $conversationHistory = [])
 {
     $systemPrompt = <<<'PROMPT'
 You are Trainer Dex, a knowledgeable Pokémon TCG (Trading Card Game) expert and retro Pokémon trainer. You embody the personality of a nostalgic Game Boy-era trainer who knows everything about Pokémon cards, pricing, rarity, sets, and collecting.
@@ -161,37 +166,39 @@ Example responses:
 - User: "Write me a poem about Python" → "I'm just a Pokémon trainer, not a poet! Stick to Pokémon questions!"
 PROMPT;
 
-    $messages = [];
+    $input = [
+        buildOpenAIMessage('developer', $systemPrompt)
+    ];
 
     // Add conversation history
     foreach ($conversationHistory as $msg) {
-        $messages[] = [
-            'role' => $msg['role'] === 'assistant' ? 'assistant' : 'user',
-            'content' => $msg['content']
-        ];
+        $input[] = buildOpenAIMessage(
+            $msg['role'] === 'assistant' ? 'assistant' : 'user',
+            $msg['content'] ?? ''
+        );
     }
 
     // Add current user message
-    $messages[] = [
-        'role' => 'user',
-        'content' => $userMessage
-    ];
+    $input[] = buildOpenAIMessage('user', $userMessage);
 
     $requestBody = [
-        'model' => readEnvironmentValue('ANTHROPIC_MODEL') ?: 'claude-3-5-sonnet-latest',
-        'max_tokens' => 300,
-        'system' => $systemPrompt,
-        'messages' => $messages
+        'model' => readEnvironmentValue('OPENAI_MODEL') ?: 'gpt-5.4-mini',
+        'input' => $input,
+        'max_output_tokens' => 300
     ];
+
+    $reasoningEffort = readEnvironmentValue('OPENAI_REASONING_EFFORT');
+    if ($reasoningEffort) {
+        $requestBody['reasoning'] = ['effort' => $reasoningEffort];
+    }
 
     $ch = curl_init();
     curl_setopt_array($ch, [
-        CURLOPT_URL => 'https://api.anthropic.com/v1/messages',
+        CURLOPT_URL => 'https://api.openai.com/v1/responses',
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_HTTPHEADER => [
             'Content-Type: application/json',
-            'x-api-key: ' . $apiKey,
-            'anthropic-version: 2023-06-01'
+            'Authorization: Bearer ' . $apiKey
         ],
         CURLOPT_POST => true,
         CURLOPT_POSTFIELDS => json_encode($requestBody),
@@ -208,16 +215,59 @@ PROMPT;
 
     $responseData = json_decode($response, true);
 
-    if ($httpCode !== 200) {
-        $errorMessage = $responseData['error']['message'] ?? 'Unknown error from Anthropic API';
-        throw new Exception('API Error (' . $httpCode . '): ' . $errorMessage);
+    if ($httpCode < 200 || $httpCode >= 300) {
+        $errorMessage = $responseData['error']['message'] ?? 'Unknown error from OpenAI API';
+        throw new RuntimeException('API Error (' . $httpCode . '): ' . $errorMessage, $httpCode);
     }
 
-    if (!isset($responseData['content'][0]['text'])) {
-        throw new Exception('Invalid response format from Anthropic API');
+    $text = extractOpenAIText($responseData);
+    if ($text === null || $text === '') {
+        throw new RuntimeException('Invalid response format from OpenAI API');
     }
 
-    return $responseData['content'][0]['text'];
+    return $text;
+}
+
+function buildOpenAIMessage($role, $text)
+{
+    return [
+        'role' => $role,
+        'content' => [
+            [
+                'type' => 'input_text',
+                'text' => (string) $text
+            ]
+        ]
+    ];
+}
+
+function extractOpenAIText(array $responseData)
+{
+    if (isset($responseData['output_text']) && is_string($responseData['output_text'])) {
+        return trim($responseData['output_text']);
+    }
+
+    if (!isset($responseData['output']) || !is_array($responseData['output'])) {
+        return null;
+    }
+
+    foreach ($responseData['output'] as $item) {
+        if (!isset($item['content']) || !is_array($item['content'])) {
+            continue;
+        }
+
+        foreach ($item['content'] as $contentItem) {
+            if (($contentItem['type'] ?? null) === 'output_text' && isset($contentItem['text']) && is_string($contentItem['text'])) {
+                return trim($contentItem['text']);
+            }
+
+            if (($contentItem['type'] ?? null) === 'text' && isset($contentItem['text']) && is_string($contentItem['text'])) {
+                return trim($contentItem['text']);
+            }
+        }
+    }
+
+    return null;
 }
 
 function bootstrapEnvironment($projectRoot)

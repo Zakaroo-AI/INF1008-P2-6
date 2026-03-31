@@ -32,7 +32,7 @@ require_once 'includes/header.php';
             <div class="trainer-chat-body" id="chatBody">
                 <div class="chat-row trainer-msg">
                     <div class="chat-bubble">
-                        Yo trainer! I'm Trainer Dex. Ask me about Pokémon, card prices, card facts, rarity, or collecting tips.
+                        HELLOOOO trainer! I'm Trainer Dex. Ask me about Pokémon, card prices, card facts, rarity, or collecting tips.
                     </div>
                 </div>
 
