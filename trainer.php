@@ -119,23 +119,25 @@ require_once 'includes/header.php';
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'health_check' })
             });
+            const data = await response.json().catch(() => null);
 
-            if (response.ok) {
+            if (response.ok && data?.success) {
                 isConnected = true;
                 input.disabled = false;
                 sendBtn.disabled = false;
-                formNote.textContent = 'Backend connected ✓';
+                formNote.textContent = data.message || 'Backend connected ✓';
                 formNote.style.color = '#28a745';
                 document.getElementById('statusBadge').textContent = 'Connected';
             } else {
-                throw new Error('Backend not responding');
+                throw new Error(data?.message || data?.error || 'Backend not responding');
             }
         } catch (error) {
             console.error('Backend connection error:', error);
-            formNote.innerHTML = '<span style="color: #dc3545;">⚠ Backend unavailable. Using demo mode.</span>';
+            formNote.innerHTML = `<span style="color: #dc3545;">⚠ ${error.message}. Using demo mode.</span>`;
             // Still enable input for demo mode
             input.disabled = false;
             sendBtn.disabled = false;
+            document.getElementById('statusBadge').textContent = 'Demo Mode';
         }
 
         form.addEventListener('submit', (e) => handleSubmit(e));
@@ -152,6 +154,7 @@ require_once 'includes/header.php';
 
         // Add user message to chat
         addMessageToChat('user', message);
+        const requestHistory = [...conversationHistory];
         conversationHistory.push({ role: 'user', content: message });
         input.value = '';
 
@@ -169,7 +172,7 @@ require_once 'includes/header.php';
                     body: JSON.stringify({
                         action: 'chat',
                         message: message,
-                        history: conversationHistory
+                        history: requestHistory
                     })
                 });
 

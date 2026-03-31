@@ -18,22 +18,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-require_once __DIR__ . '/../vendor/autoload.php';
+bootstrapEnvironment(__DIR__ . '/..');
 
-$dotenv = Dotenv\Dotenv::createImmutable(__DIR__ . '/..');
-$dotenv->load();
+$apiKey = readEnvironmentValue('ANTHROPIC_API_KEY');
+$hasCurl = extension_loaded('curl');
 
-// Load configuration
-$apiKey = $_ENV['ANTHROPIC_API_KEY'] ?? getenv('ANTHROPIC_API_KEY') ?? null;
-if (!$apiKey) {
-    // Fallback: check if it's defined in a config file
-    $apiKey = defined('ANTHROPIC_API_KEY') ? ANTHROPIC_API_KEY : null;
-}
-
-if (!$apiKey) {
-    http_response_code(500);
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+    http_response_code(405);
     echo json_encode([
-        'error' => 'Anthropic API key not configured. Please set ANTHROPIC_API_KEY environment variable.',
+        'error' => 'Method not allowed',
         'success' => false
     ]);
     exit;
@@ -55,10 +48,39 @@ $action = $inputData['action'] ?? null;
 
 // Health check endpoint
 if ($action === 'health_check') {
+    $issues = [];
+
+    if (!$apiKey) {
+        $issues[] = 'Missing ANTHROPIC_API_KEY';
+    }
+
+    if (!$hasCurl) {
+        $issues[] = 'PHP cURL extension is not enabled';
+    }
+
     echo json_encode([
-        'success' => true,
-        'status' => 'connected',
-        'message' => 'Backend AI is ready'
+        'success' => empty($issues),
+        'status' => empty($issues) ? 'connected' : 'degraded',
+        'message' => empty($issues) ? 'Backend AI is ready' : implode('. ', $issues),
+        'provider' => 'anthropic'
+    ]);
+    exit;
+}
+
+if (!$apiKey) {
+    http_response_code(500);
+    echo json_encode([
+        'error' => 'Anthropic API key not configured. Please set ANTHROPIC_API_KEY in .env or the server environment.',
+        'success' => false
+    ]);
+    exit;
+}
+
+if (!$hasCurl) {
+    http_response_code(500);
+    echo json_encode([
+        'error' => 'PHP cURL extension is required for the AI backend.',
+        'success' => false
     ]);
     exit;
 }
@@ -156,7 +178,7 @@ PROMPT;
     ];
 
     $requestBody = [
-        'model' => 'claude-opus-4-1',
+        'model' => readEnvironmentValue('ANTHROPIC_MODEL') ?: 'claude-3-5-sonnet-latest',
         'max_tokens' => 300,
         'system' => $systemPrompt,
         'messages' => $messages
@@ -179,7 +201,6 @@ PROMPT;
     $response = curl_exec($ch);
     $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
     $curlError = curl_error($ch);
-    curl_close($ch);
 
     if ($curlError) {
         throw new Exception('Network error: ' . $curlError);
@@ -199,4 +220,55 @@ PROMPT;
     return $responseData['content'][0]['text'];
 }
 
-?>
+function bootstrapEnvironment($projectRoot)
+{
+    $autoloadPath = $projectRoot . '/vendor/autoload.php';
+    if (file_exists($autoloadPath)) {
+        require_once $autoloadPath;
+    }
+
+    if (class_exists('Dotenv\\Dotenv')) {
+        Dotenv\Dotenv::createImmutable($projectRoot)->safeLoad();
+        return;
+    }
+
+    loadEnvFile($projectRoot . '/.env');
+}
+
+function loadEnvFile($envPath)
+{
+    if (!is_readable($envPath)) {
+        return;
+    }
+
+    $lines = file($envPath, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+    if ($lines === false) {
+        return;
+    }
+
+    foreach ($lines as $line) {
+        $trimmed = trim($line);
+
+        if ($trimmed === '' || str_starts_with($trimmed, '#') || !str_contains($trimmed, '=')) {
+            continue;
+        }
+
+        [$key, $value] = explode('=', $trimmed, 2);
+        $key = trim($key);
+        $value = trim($value);
+
+        if ($key === '') {
+            continue;
+        }
+
+        $value = trim($value, "\"'");
+        $_ENV[$key] = $value;
+        $_SERVER[$key] = $value;
+        putenv($key . '=' . $value);
+    }
+}
+
+function readEnvironmentValue($key)
+{
+    return $_ENV[$key] ?? $_SERVER[$key] ?? getenv($key) ?: null;
+}
