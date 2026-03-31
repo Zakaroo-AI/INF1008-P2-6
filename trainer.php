@@ -176,11 +176,11 @@ require_once 'includes/header.php';
                     })
                 });
 
-                if (!response.ok) {
-                    throw new Error(`Server error: ${response.status}`);
-                }
+                const data = await response.json().catch(() => null);
 
-                const data = await response.json();
+                if (!response.ok) {
+                    throw new Error(data?.error || data?.message || `Server error: ${response.status}`);
+                }
 
                 if (data.error) {
                     throw new Error(data.error);
