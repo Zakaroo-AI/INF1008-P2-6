@@ -4,6 +4,11 @@ require_once 'includes/header.php';
 ?>
 
 <section class="trainer-page py-5">
+    <div class="trainer-scene" aria-hidden="true">
+        <img src="/assets/images/pikachu.png" alt="" class="trainer-scene-figure trainer-scene-pikachu">
+        <img src="/assets/images/bulbasaur.png" alt="" class="trainer-scene-figure trainer-scene-bulbasaur">
+        <img src="/assets/images/meowth.png" alt="" class="trainer-scene-figure trainer-scene-meowth">
+    </div>
     <div class="container">
         <div class="trainer-hero text-center mb-4">
             <span class="trainer-chip mb-3 d-inline-block">
@@ -19,7 +24,7 @@ require_once 'includes/header.php';
             <div class="trainer-chat-header d-flex justify-content-between align-items-center">
                 <div class="d-flex align-items-center gap-2">
                     <div class="trainer-avatar">
-                        <i class="bi bi-person-badge-fill"></i>
+                        <img src="/assets/images/ash_poketrainer.png" alt="Trainer Dex avatar">
                     </div>
                     <div>
                         <div class="fw-bold">Trainer Dex</div>
