@@ -4,11 +4,6 @@ require_once 'includes/header.php';
 ?>
 
 <section class="trainer-page py-5">
-    <div class="trainer-scene" aria-hidden="true">
-        <img src="/assets/images/pikachu.png" alt="" class="trainer-scene-figure trainer-scene-pikachu">
-        <img src="/assets/images/bulbasaur.png" alt="" class="trainer-scene-figure trainer-scene-bulbasaur">
-        <img src="/assets/images/meowth.png" alt="" class="trainer-scene-figure trainer-scene-meowth">
-    </div>
     <div class="container">
         <div class="trainer-hero text-center mb-4">
             <span class="trainer-chip mb-3 d-inline-block">
@@ -35,6 +30,11 @@ require_once 'includes/header.php';
             </div>
 
             <div class="trainer-chat-body" id="chatBody">
+                <div class="trainer-chat-decor" aria-hidden="true">
+                    <img src="/assets/images/pikachu.png" alt="" class="trainer-chat-decor-figure trainer-chat-decor-pikachu">
+                    <img src="/assets/images/bulbasaur.png" alt="" class="trainer-chat-decor-figure trainer-chat-decor-bulbasaur">
+                    <img src="/assets/images/meowth.png" alt="" class="trainer-chat-decor-figure trainer-chat-decor-meowth">
+                </div>
                 <div class="chat-row trainer-msg">
                     <div class="chat-bubble">
                         Yo trainer! I'm Trainer Dex. Ask me about Pokémon, card prices, card facts, rarity, or collecting tips.
@@ -177,7 +177,7 @@ require_once 'includes/header.php';
                     action: 'chat',
                     message: message,
                     history: requestHistory
-                });
+                })
             });
 
             const data = await response.json().catch(() => null);
@@ -210,13 +210,32 @@ require_once 'includes/header.php';
 
         const bubble = document.createElement('div');
         bubble.className = isError ? 'chat-bubble error-bubble' : 'chat-bubble';
-        bubble.textContent = message;
+
+        if (sender === 'trainer' && !isError) {
+            bubble.innerHTML = formatTrainerMessage(message);
+        } else {
+            bubble.textContent = message;
+        }
 
         row.appendChild(bubble);
         chatBody.appendChild(row);
         chatBody.scrollTop = chatBody.scrollHeight;
 
         return row;
+    }
+
+    function formatTrainerMessage(message) {
+        const escaped = escapeHtml(String(message ?? ''));
+        return escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    }
+
+    function escapeHtml(value) {
+        return value
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
     }
 
     function showTypingIndicator() {

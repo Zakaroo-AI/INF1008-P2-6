@@ -44,12 +44,8 @@ require_once 'includes/header.php';
         </div>
         <div class="col-md-6 text-center">
             <div class="about-visual-card about-visual-card-mission">
-                <div class="about-visual-orb" aria-hidden="true">
-                    <span class="about-orb-ring about-orb-ring-1"></span>
-                    <span class="about-orb-ring about-orb-ring-2"></span>
-                    <span class="about-orb-core">
-                        <i class="bi bi-globe2"></i>
-                    </span>
+                <div class="about-visual-image-wrap" aria-hidden="true">
+                    <img src="/assets/images/poketrainers.png" alt="" class="about-visual-image about-visual-image-top">
                 </div>
                 <p class="about-visual-kicker mb-2">Global Network</p>
                 <p class="about-visual-title mb-0">Connecting Trainers Worldwide</p>
@@ -84,20 +80,10 @@ require_once 'includes/header.php';
                 <!-- RIGHT: VISUAL CARD -->
                 <div class="col-lg-6">
                     <div class="ai-trainer-card text-center p-4">
-                        <div class="ai-trainer-graphic ai-trainer-graphic-signal" aria-hidden="true">
-                            <span class="ai-signal-ring ai-signal-ring-1"></span>
-                            <span class="ai-signal-ring ai-signal-ring-2"></span>
-                            <span class="ai-signal-ring ai-signal-ring-3"></span>
-                            <span class="ai-signal-core">
-                                <span class="ai-signal-pulse"></span>
-                                <i class="bi bi-chat-square-dots-fill"></i>
-                            </span>
+                        <div class="about-visual-image-wrap about-visual-image-wrap-ai" aria-hidden="true">
+                            <img src="/assets/images/ash_poketrainer.png" alt="" class="about-visual-image about-visual-image-bottom">
                         </div>
-                        <p class="about-visual-kicker mb-2">PokéTrainer AI</p>
                         <h5 class="fw-bold mb-2">AI-Powered Trainer Assistant</h5>
-                        <p class="text-muted mb-0">
-                            Get instant help with Pokémon cards, pricing, and facts — anytime.
-                        </p>
                     </div>
                 </div>
 

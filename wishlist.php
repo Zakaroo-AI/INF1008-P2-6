@@ -29,18 +29,18 @@ require_once 'includes/header.php';
 <div class="container py-5">
     <h1 class="h2 fw-bold mb-4" style="color:var(--pm-blue);">
         <i class="bi bi-heart me-2"></i>My Wishlist
-        <span class="badge bg-secondary fs-6 ms-2"><?= count($wishItems) ?></span>
+        <span class="badge bg-secondary fs-6 ms-2" id="wishlist-count-badge"><?= count($wishItems) ?></span>
     </h1>
 
     <?php if (empty($wishItems)): ?>
-    <div class="text-center py-5">
+    <div class="text-center py-5" id="wishlist-empty-state">
         <i class="bi bi-heart display-1 text-muted"></i>
         <h2 class="h4 mt-3 text-muted">Your wishlist is empty</h2>
         <p class="text-muted">Click the heart icon on any listing to save it here.</p>
         <a href="/browse.php" class="btn btn-pm-primary mt-2">Browse Listings</a>
     </div>
     <?php else: ?>
-    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+    <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4" id="wishlist-grid">
         <?php foreach ($wishItems as $item): ?>
         <div class="col" id="wish-row-<?= $item['listing_id'] ?>">
             <article class="card listing-card h-100">
@@ -93,24 +93,5 @@ require_once 'includes/header.php';
     </div>
     <?php endif; ?>
 </div>
-
-<!-- Remove card from DOM after wishlist toggle -->
-<script>
-document.querySelectorAll('.wishlist-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-        const listingId = btn.dataset.listing;
-        const res  = await fetch('/api/wishlist.php', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ listing_id: listingId })
-        });
-        const data = await res.json();
-        if (data.success && !data.wishlisted) {
-            const row = document.getElementById('wish-row-' + listingId);
-            if (row) { row.style.opacity='0'; row.style.transition='opacity 0.3s'; setTimeout(()=>row.remove(), 300); }
-        }
-    });
-});
-</script>
 
 <?php require_once 'includes/footer.php'; ?>

@@ -131,6 +131,9 @@ function updateCartUI(data) {
 // ---- WISHLIST TOGGLE (AJAX) --------------------------------------
 function initWishlistButtons() {
     document.querySelectorAll('.wishlist-btn').forEach(btn => {
+        if (btn.dataset.wishlistBound === 'true') return;
+        btn.dataset.wishlistBound = 'true';
+
         btn.addEventListener('click', async () => {
             const listingId = btn.dataset.listing;
             try {
@@ -142,15 +145,71 @@ function initWishlistButtons() {
                 const data = await res.json();
                 if (data.success) {
                     btn.classList.toggle('wishlisted', data.wishlisted);
-                    btn.setAttribute('aria-pressed', data.wishlisted);
+                    btn.setAttribute('aria-pressed', String(data.wishlisted));
                     btn.title = data.wishlisted ? 'Remove from wishlist' : 'Add to wishlist';
+                    btn.setAttribute('aria-label', btn.title);
+
+                    updateWishlistUI(listingId, data.wishlisted);
                     showToast(data.message, 'success');
                 } else if (data.redirect) {
                     window.location.href = data.redirect;
+                } else {
+                    showToast(data.message || 'Wishlist update failed', 'danger');
                 }
             } catch (e) { showToast('Network error', 'danger'); }
         });
     });
+}
+
+function updateWishlistUI(listingId, wishlisted) {
+    const badge = document.querySelector('.navbar .bi-heart')?.closest('.nav-link')?.querySelector('.badge');
+    const currentNavCount = badge ? parseInt(badge.textContent || '0', 10) || 0 : 0;
+
+    if (badge) {
+        const nextCount = Math.max(0, currentNavCount + (wishlisted ? 1 : -1));
+        badge.textContent = nextCount;
+        badge.style.display = nextCount > 0 ? '' : 'none';
+    }
+
+    const pageCountBadge = document.getElementById('wishlist-count-badge');
+    const wishlistRow = document.getElementById(`wish-row-${listingId}`);
+    const wishlistGrid = document.getElementById('wishlist-grid');
+    const emptyState = document.getElementById('wishlist-empty-state');
+
+    if (!pageCountBadge || !wishlistGrid || !wishlistRow || wishlisted) {
+        return;
+    }
+
+    const currentPageCount = parseInt(pageCountBadge.textContent || '0', 10) || 0;
+    const nextPageCount = Math.max(0, currentPageCount - 1);
+    pageCountBadge.textContent = nextPageCount;
+
+    wishlistRow.style.transition = 'opacity 0.25s ease, transform 0.25s ease';
+    wishlistRow.style.opacity = '0';
+    wishlistRow.style.transform = 'translateY(10px)';
+
+    setTimeout(() => {
+        wishlistRow.remove();
+
+        if (nextPageCount === 0 && !document.getElementById('wishlist-empty-state')) {
+            wishlistGrid.remove();
+
+            const container = pageCountBadge.closest('.container');
+            if (container) {
+                const emptyMarkup = `
+                    <div class="text-center py-5" id="wishlist-empty-state">
+                        <i class="bi bi-heart display-1 text-muted"></i>
+                        <h2 class="h4 mt-3 text-muted">Your wishlist is empty</h2>
+                        <p class="text-muted">Click the heart icon on any listing to save it here.</p>
+                        <a href="/browse.php" class="btn btn-pm-primary mt-2">Browse Listings</a>
+                    </div>
+                `;
+                container.insertAdjacentHTML('beforeend', emptyMarkup);
+            }
+        } else if (emptyState) {
+            emptyState.remove();
+        }
+    }, 250);
 }
 
 // ---- STAT BARS ANIMATION ----------------------------------------
