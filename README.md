@@ -17,7 +17,7 @@
 ## 🌐 Live Site
 
 Hosted on Google Cloud Compute Engine (LAMP stack):
-> http://your-google-cloud-ip-here
+> http://35.212.172.68/
 
 ---
 
